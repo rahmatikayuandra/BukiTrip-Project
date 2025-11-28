@@ -17,6 +17,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { Destination, getDestinations } from "../../../constants/api";
+import { useRouter } from "expo-router";
 
 const heroImage = require("../../../assets/images/jamgadangmain.jpg");
 
@@ -35,6 +36,7 @@ const HomeScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const router = useRouter();
 
   const loadDestinations = async () => {
     try {
@@ -105,26 +107,36 @@ const HomeScreen: React.FC = () => {
   }
 
   const renderDestinationCard = (item: Destination) => (
-    <View style={styles.destCard}>
-      {item.image_url ? (
-        <Image source={{ uri: item.image_url }} style={styles.destImage} />
-      ) : (
-        <View style={[styles.destImage, styles.destImagePlaceholder]} />
+  <TouchableOpacity
+    style={styles.destCard}
+    onPress={() =>
+      router.push({
+        pathname: "/destination/[id]",
+        params: { id: item.destination_id },
+      })
+    }
+  >
+    {item.image_url ? (
+      <Image source={{ uri: item.image_url }} style={styles.destImage} />
+    ) : (
+      <View style={[styles.destImage, styles.destImagePlaceholder]} />
+    )}
+    <View style={styles.destInfo}>
+      <Text style={styles.destName} numberOfLines={1}>
+        {item.destination_name}
+      </Text>
+      <Text style={styles.destPrice}>Rp {item.price_adult}</Text>
+      {item.rating && (
+        <View style={styles.ratingRow}>
+          <Ionicons name="star" size={12} color="#F5C045" />
+          <Text style={styles.destRating}>
+            {parseFloat(item.rating).toFixed(1)} / 5
+          </Text>
+        </View>
       )}
-      <View style={styles.destInfo}>
-        <Text style={styles.destName} numberOfLines={1}>
-          {item.destination_name}
-        </Text>
-        <Text style={styles.destPrice}>Rp {item.price_adult}</Text>
-        {item.rating && (
-          <View style={styles.ratingRow}>
-            <Ionicons name="star" size={12} color="#F5C045" />
-            <Text style={styles.destRating}>{item.rating} / 5</Text>
-          </View>
-        )}
-      </View>
     </View>
-  );
+  </TouchableOpacity>
+);
 
   return (
     <View style={styles.root}>
