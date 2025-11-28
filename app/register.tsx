@@ -1,6 +1,5 @@
-import { StatusBar } from "expo-status-bar";
-// app/login.tsx
-import React, { useState, useEffect } from "react";
+// app/register.tsx
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -14,67 +13,48 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loginUser } from "../constants/api";
+import { registerUser } from "../constants/api";
 
-const STORAGE_REMEMBER = "bukitrip_remember_me";
-const STORAGE_EMAIL = "bukitrip_saved_email";
-
-const LoginScreen: React.FC = () => {
+const RegisterScreen: React.FC = () => {
   const router = useRouter();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
-  // Saat screen pertama kali dibuka, cek apakah sebelumnya user pilih "remember me"
-  useEffect(() => {
-    const loadRemembered = async () => {
-      try {
-        const remembered = await AsyncStorage.getItem(STORAGE_REMEMBER);
-        const savedEmail = await AsyncStorage.getItem(STORAGE_EMAIL);
+  const handleRegister = async () => {
+    if (!name || !email || !username || !password || !confirm) {
+      Alert.alert("Oops", "Semua field harus diisi");
+      return;
+    }
 
-        if (remembered === "true" && savedEmail) {
-          setRememberMe(true);
-          setEmail(savedEmail);
-        }
-      } catch (e) {
-        console.warn("Gagal mengambil data remember me", e);
-      }
-    };
+    if (password !== confirm) {
+      Alert.alert("Oops", "Password dan konfirmasi tidak sama");
+      return;
+    }
 
-    loadRemembered();
-  }, []);
-
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Oops", "Email dan password wajib diisi");
+    if (!acceptTerms) {
+      Alert.alert(
+        "Oops",
+        "Kamu harus menyetujui Terms of Use & Privacy Policy"
+      );
       return;
     }
 
     setLoading(true);
     try {
-      const res = await loginUser(email, password);
+      const res = await registerUser({ name, email, username, password });
 
       if (res.status === "success") {
-        // Simpan / hapus email sesuai status rememberMe
-        try {
-          if (rememberMe) {
-            await AsyncStorage.setItem(STORAGE_REMEMBER, "true");
-            await AsyncStorage.setItem(STORAGE_EMAIL, email);
-          } else {
-            await AsyncStorage.removeItem(STORAGE_REMEMBER);
-            await AsyncStorage.removeItem(STORAGE_EMAIL);
-          }
-        } catch (e) {
-          console.warn("Gagal menyimpan remember me", e);
-        }
-
         router.replace("/(tabs)/home");
       } else {
-        Alert.alert("Login gagal", res.message);
+        Alert.alert("Gagal", res.message);
       }
     } catch (err) {
       console.error(err);
@@ -92,38 +72,76 @@ const LoginScreen: React.FC = () => {
       style={styles.root}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <StatusBar style="dark" backgroundColor="#F9F4F5" />
       <View style={styles.container}>
-        {/* Brand & tagline */}
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.brand}>BukiTrip</Text>
-          <Text style={styles.subtitle}>
-            Jelajahi Bukittinggi dengan mudah & nyaman.
-          </Text>
+          <Text style={styles.subtitle}>Bergabung & jelajahi Bukittinggi</Text>
         </View>
 
         {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.title}>Login</Text>
+          <Text style={styles.title}>Create Account</Text>
+
+          {/* Name */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Name</Text>
+            <View style={styles.inputRow}>
+              <Ionicons
+                name="person-outline"
+                size={18}
+                color="#70587C"
+                style={styles.icon}
+              />
+              <TextInput
+                placeholder="Nama lengkap"
+                placeholderTextColor="#A48FBF"
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+          </View>
 
           {/* Email */}
-          <View className="field-email" style={styles.fieldGroup}>
+          <View style={styles.fieldGroup}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputRow}>
               <Ionicons
                 name="mail-outline"
                 size={18}
                 color="#70587C"
-                style={styles.inputIcon}
+                style={styles.icon}
               />
               <TextInput
-                placeholder="Masukkan email"
+                placeholder="contoh@email.com"
                 placeholderTextColor="#A48FBF"
                 style={styles.input}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
+              />
+            </View>
+          </View>
+
+          {/* Username */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Username</Text>
+            <View style={styles.inputRow}>
+              <Ionicons
+                name="at-outline"
+                size={18}
+                color="#70587C"
+                style={styles.icon}
+              />
+              <TextInput
+                placeholder="Username"
+                placeholderTextColor="#A48FBF"
+                style={styles.input}
+                autoCapitalize="none"
+                value={username}
+                onChangeText={setUsername}
               />
             </View>
           </View>
@@ -136,10 +154,10 @@ const LoginScreen: React.FC = () => {
                 name="lock-closed-outline"
                 size={18}
                 color="#70587C"
-                style={styles.inputIcon}
+                style={styles.icon}
               />
               <TextInput
-                placeholder="Masukkan password"
+                placeholder="Password"
                 placeholderTextColor="#A48FBF"
                 style={styles.input}
                 secureTextEntry={!showPassword}
@@ -147,10 +165,7 @@ const LoginScreen: React.FC = () => {
                 value={password}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword((prev) => !prev)}
-              >
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={20}
@@ -160,36 +175,80 @@ const LoginScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Remember me */}
+          {/* Confirm Password */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <View style={styles.inputRow}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={18}
+                color="#70587C"
+                style={styles.icon}
+              />
+              <TextInput
+                placeholder="Konfirmasi password"
+                placeholderTextColor="#A48FBF"
+                style={styles.input}
+                secureTextEntry={!showConfirm}
+                autoCapitalize="none"
+                value={confirm}
+                onChangeText={setConfirm}
+              />
+              <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
+                <Ionicons
+                  name={showConfirm ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color="#70587C"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Terms */}
           <TouchableOpacity
-            style={styles.rememberRow}
-            onPress={() => setRememberMe((prev) => !prev)}
+            style={styles.termsRow}
+            onPress={() => setAcceptTerms(!acceptTerms)}
           >
             <View
-              style={[styles.checkbox, rememberMe && styles.checkboxChecked]}
+              style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}
             >
-              {rememberMe && <Text style={styles.checkboxTick}>✓</Text>}
+              {acceptTerms && <Text style={styles.checkboxTick}>✓</Text>}
             </View>
-            <Text style={styles.rememberText}>Remember me</Text>
+            <Text style={styles.termsText}>
+              I accept the{" "}
+              <Text
+                style={styles.termsLink}
+                onPress={() => router.push("/terms")}
+              >
+                Terms of Use
+              </Text>{" "}
+              and{" "}
+              <Text
+                style={styles.termsLink}
+                onPress={() => router.push("/privacy")}
+              >
+                Privacy Policy
+              </Text>
+            </Text>
           </TouchableOpacity>
 
-          {/* Tombol LOGIN */}
+          {/* Create Account Button */}
           <TouchableOpacity
             style={[styles.button, loading && { opacity: 0.8 }]}
-            onPress={handleLogin}
+            onPress={handleRegister}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.buttonText}>Login</Text>
+              <Text style={styles.buttonText}>Create Account</Text>
             )}
           </TouchableOpacity>
 
           {/* --- SOCIAL LOGIN SECTION --- */}
           <View style={styles.socialSeparator}>
             <View style={styles.socialLine} />
-            <Text style={styles.socialText}>Or continue with</Text>
+            <Text style={styles.socialText}>Or sign up with</Text>
             <View style={styles.socialLine} />
           </View>
 
@@ -199,7 +258,7 @@ const LoginScreen: React.FC = () => {
               onPress={() =>
                 Alert.alert(
                   "Coming soon",
-                  "Login dengan Google belum tersedia ya 😊"
+                  "Sign up dengan Google belum tersedia ya 😊"
                 )
               }
             >
@@ -211,7 +270,7 @@ const LoginScreen: React.FC = () => {
               onPress={() =>
                 Alert.alert(
                   "Coming soon",
-                  "Login dengan Apple belum tersedia ya 😊"
+                  "Sign up dengan Apple belum tersedia ya 😊"
                 )
               }
             >
@@ -223,7 +282,7 @@ const LoginScreen: React.FC = () => {
               onPress={() =>
                 Alert.alert(
                   "Coming soon",
-                  "Login dengan Facebook belum tersedia ya 😊"
+                  "Sign up dengan Facebook belum tersedia ya 😊"
                 )
               }
             >
@@ -231,15 +290,15 @@ const LoginScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Text create account */}
+          {/* Login link */}
           <View style={styles.bottomTextContainer}>
             <Text style={styles.smallText}>
-              Don’t have an account?{" "}
+              Already have an account?{" "}
               <Text
                 style={styles.linkText}
-                onPress={() => router.push("/register")}
+                onPress={() => router.replace("/login")}
               >
-                Create account
+                Login
               </Text>
             </Text>
           </View>
@@ -249,7 +308,7 @@ const LoginScreen: React.FC = () => {
   );
 };
 
-export default LoginScreen;
+export default RegisterScreen;
 
 const styles = StyleSheet.create({
   root: {
@@ -263,7 +322,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 15,
   },
   brand: {
     fontSize: 28,
@@ -295,7 +354,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   fieldGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   label: {
     fontSize: 13,
@@ -311,7 +370,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9F4F5",
     paddingHorizontal: 10,
   },
-  inputIcon: {
+  icon: {
     marginRight: 6,
   },
   input: {
@@ -320,15 +379,10 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === "ios" ? 10 : 8,
     color: "#000000",
   },
-  eyeButton: {
-    paddingLeft: 6,
-    paddingVertical: 4,
-  },
-  rememberRow: {
+  termsRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 4,
-    marginBottom: 8,
+    marginVertical: 10,
   },
   checkbox: {
     width: 18,
@@ -344,15 +398,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#70587C",
   },
   checkboxTick: {
-    color: "#FFFFFF",
-    fontSize: 11,
+    color: "#fff",
+    fontSize: 12,
   },
-  rememberText: {
+  termsText: {
     fontSize: 12,
     color: "#70587C",
+    flexShrink: 1,
+  },
+  termsLink: {
+    color: "#502F4C",
+    fontWeight: "600",
   },
   button: {
-    marginTop: 8,
+    marginTop: 6,
     backgroundColor: "#502F4C",
     borderRadius: 20,
     paddingVertical: 12,
@@ -384,7 +443,6 @@ const styles = StyleSheet.create({
   socialRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 8,
   },
   socialButton: {
     width: 44,

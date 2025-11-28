@@ -1,5 +1,7 @@
-import { Redirect } from 'expo-router';
+// app/index.tsx
+import { Redirect } from "expo-router";
 
 export default function Index() {
-  return <Redirect href="/welcome" />;
+  // Waktu app pertama kali dibuka ke path "/", langsung diarahkan ke /login
+  return <Redirect href="/login" />;
 }
