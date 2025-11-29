@@ -24,6 +24,7 @@ type DetailState = {
   destination: Destination | null;
   reviews: Review[];
   related: Destination[];
+  images: string[];
 };
 
 const DestinationDetailScreen: React.FC = () => {
@@ -34,6 +35,7 @@ const DestinationDetailScreen: React.FC = () => {
     destination: null,
     reviews: [],
     related: [],
+    images: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,7 @@ const DestinationDetailScreen: React.FC = () => {
             destination: res.destination,
             reviews: res.reviews,
             related: res.related,
+            images: res.images,
           });
         } else {
           setError(res.message);
@@ -73,17 +76,11 @@ const DestinationDetailScreen: React.FC = () => {
 
   const destination = data.destination;
 
-  const images = useMemo(() => {
-    // sementara: pakai satu image dari DB, diulang biar bisa di-swipe
-    if (destination?.image_url) {
-      return [
-        destination.image_url,
-        destination.image_url,
-        destination.image_url,
-      ];
-    }
-    return [];
-  }, [destination]);
+  const images = data.images.length
+    ? data.images
+    : destination?.image_url
+    ? [destination.image_url]
+    : [];
 
   if (loading) {
     return (
@@ -306,24 +303,26 @@ const DestinationDetailScreen: React.FC = () => {
                   <View key={rev.review_id} style={styles.reviewCard}>
                     {/* header: avatar + nama + rating */}
                     <View style={styles.reviewHeader}>
-  {rev.profil_pic ? (
-    <Image
-      source={{ uri: rev.profil_pic }}
-      style={styles.reviewAvatarImage}
-    />
-  ) : (
-    <View style={styles.reviewAvatar} />
-  )}
-  <View style={{ flex: 1 }}>
-    <Text style={styles.reviewName}>
-      {rev.user_name || "Pengguna BukiTrip"}
-    </Text>
-    <View style={styles.reviewRatingRow}>
-      <Ionicons name="star" size={12} color="#F5C045" />
-      <Text style={styles.reviewRatingText}>{rev.rating} / 5</Text>
-    </View>
-  </View>
-</View>
+                      {rev.profil_pic ? (
+                        <Image
+                          source={{ uri: rev.profil_pic }}
+                          style={styles.reviewAvatarImage}
+                        />
+                      ) : (
+                        <View style={styles.reviewAvatar} />
+                      )}
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.reviewName}>
+                          {rev.user_name || "Pengguna BukiTrip"}
+                        </Text>
+                        <View style={styles.reviewRatingRow}>
+                          <Ionicons name="star" size={12} color="#F5C045" />
+                          <Text style={styles.reviewRatingText}>
+                            {rev.rating} / 5
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
 
                     {/* komentar */}
                     <Text style={styles.reviewComment}>
@@ -554,84 +553,84 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   sectionHeaderRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 6,
-},
-reviewCard: {
-  marginTop: 8,
-  padding: 12,
-  borderRadius: 12,
-  backgroundColor: "#F3F3F5",
-},
-reviewHeader: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginBottom: 6,
-},
-reviewAvatar: {
-  width: 32,
-  height: 32,
-  borderRadius: 16,
-  backgroundColor: "#D0C4E5",
-  marginRight: 10,
-},
-reviewAvatarImage: {
-  width: 32,
-  height: 32,
-  borderRadius: 16,
-  marginRight: 10,
-  backgroundColor: "#D0C4E5", // kalau gambar belum ke-load
-},
-// reviewAvatar lama (lingkaran ungu) boleh tetap dipakai untuk placeholder
-reviewName: {
-  fontSize: 13,
-  fontWeight: "600",
-  color: "#502F4C",
-},
-reviewRatingRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginTop: 2,
-},
-reviewRatingText: {
-  fontSize: 12,
-  color: "#70587C",
-  marginLeft: 4,
-},
-reviewComment: {
-  fontSize: 12,
-  color: "#70587C",
-  lineHeight: 18,
-  marginBottom: 8,
-},
-reviewImagesRow: {
-  flexDirection: "row",
-  gap: 8,
-  marginTop: 4,
-},
-reviewImagePlaceholder: {
-  flex: 1,
-  height: 50,
-  borderRadius: 6,
-  backgroundColor: "#E0D6EE",
-},
-moreReviewsButton: {
-  marginTop: 10,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  paddingVertical: 10,
-  paddingHorizontal: 12,
-  borderRadius: 10,
-  backgroundColor: "#F3F3F5",
-},
-moreReviewsText: {
-  fontSize: 13,
-  color: "#502F4C",
-  fontWeight: "500",
-},
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  reviewCard: {
+    marginTop: 8,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#F3F3F5",
+  },
+  reviewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  reviewAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#D0C4E5",
+    marginRight: 10,
+  },
+  reviewAvatarImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 10,
+    backgroundColor: "#D0C4E5", // kalau gambar belum ke-load
+  },
+  // reviewAvatar lama (lingkaran ungu) boleh tetap dipakai untuk placeholder
+  reviewName: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#502F4C",
+  },
+  reviewRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  reviewRatingText: {
+    fontSize: 12,
+    color: "#70587C",
+    marginLeft: 4,
+  },
+  reviewComment: {
+    fontSize: 12,
+    color: "#70587C",
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  reviewImagesRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 4,
+  },
+  reviewImagePlaceholder: {
+    flex: 1,
+    height: 50,
+    borderRadius: 6,
+    backgroundColor: "#E0D6EE",
+  },
+  moreReviewsButton: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: "#F3F3F5",
+  },
+  moreReviewsText: {
+    fontSize: 13,
+    color: "#502F4C",
+    fontWeight: "500",
+  },
   relatedCard: {
     width: 140,
     marginRight: 10,

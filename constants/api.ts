@@ -90,6 +90,7 @@ export type DestinationDetailResponse =
   | {
       status: "success";
       destination: Destination;
+      images: string[];
       reviews: Review[];
       related: Destination[];
     }
@@ -118,8 +119,21 @@ export async function getDestinationDetail(
   destinationId: number
 ): Promise<DestinationDetailResponse> {
   const res = await fetch(
-    `${API_BASE_URL}/get_destination_detail.php?id=${destinationId}` // ⬅️ ganti jadi ?id=
+    `${API_BASE_URL}/get_destination_detail.php?id=${destinationId}`
   );
-  const json = await res.json();
-  return json as DestinationDetailResponse;
+
+  // 1. Baca sebagai teks dulu
+  const raw = await res.text();
+  console.log("DETAIL RAW RESPONSE:", raw);
+
+  // 2. Bersihin BOM + spasi di awal
+  const cleaned = raw.replace(/^\uFEFF/, "").trimStart();
+
+  // 3. Parse manual
+  try {
+    return JSON.parse(cleaned) as DestinationDetailResponse;
+  } catch (e) {
+    console.error("Gagal parse JSON detail:", e, cleaned);
+    throw e; // biar ketangkap di try/catch screen detail
+  }
 }
