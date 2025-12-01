@@ -72,6 +72,12 @@ const LoginScreen: React.FC = () => {
           console.warn("Gagal menyimpan remember me", e);
         }
 
+        try {
+          await AsyncStorage.setItem("bukitrip_user", JSON.stringify(res.user));
+        } catch (e) {
+          console.warn("Gagal menyimpan user ke storage", e);
+        }
+
         router.replace("/(tabs)/home");
       } else {
         Alert.alert("Login gagal", res.message);

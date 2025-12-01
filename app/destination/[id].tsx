@@ -158,7 +158,6 @@ const DestinationDetailScreen: React.FC = () => {
   return (
     <View style={styles.root}>
       <StatusBar style="dark" backgroundColor="#F9F4F5" />
-
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -169,7 +168,6 @@ const DestinationDetailScreen: React.FC = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detail Destinasi</Text>
       </View>
-
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
@@ -374,16 +372,15 @@ const DestinationDetailScreen: React.FC = () => {
           )}
         </View>
       </ScrollView>
-
       {/* PESAN SEKARANG */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={styles.orderButton}
           onPress={() =>
-            Alert.alert(
-              "Pesan Sekarang",
-              "Halaman pemesanan akan kita buat di step berikutnya 😉"
-            )
+            router.push({
+              pathname: "/order/[id]",
+              params: { id: destination.destination_id },
+            })
           }
         >
           <Text style={styles.orderButtonText}>Pesan Sekarang</Text>

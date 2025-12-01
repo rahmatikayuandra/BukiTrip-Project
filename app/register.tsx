@@ -14,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { registerUser } from "../constants/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RegisterScreen: React.FC = () => {
   const router = useRouter();
@@ -52,6 +53,12 @@ const RegisterScreen: React.FC = () => {
       const res = await registerUser({ name, email, username, password });
 
       if (res.status === "success") {
+        try {
+          await AsyncStorage.setItem("bukitrip_user", JSON.stringify(res.user));
+        } catch (e) {
+          console.warn("Gagal menyimpan user ke storage", e);
+        }
+
         router.replace("/(tabs)/home");
       } else {
         Alert.alert("Gagal", res.message);
