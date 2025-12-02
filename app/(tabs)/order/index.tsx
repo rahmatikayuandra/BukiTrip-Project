@@ -8,11 +8,16 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { getOrders, OrderSummary, updateOrderStatus } from "../../../constants/api";
+import {
+  getOrders,
+  OrderSummary,
+  updateOrderStatus,
+} from "../../../constants/api";
 
 type StoredUser = {
   user_id: number;
@@ -66,18 +71,40 @@ const OrdersTabScreen: React.FC = () => {
 
   const totalTicket = (o: OrderSummary) => o.adult_quantity + o.child_quantity;
 
-  const handleCancel = async (orderId: number) => {
-    const res = await updateOrderStatus(orderId, "cancelled");
-    if (res.status === "success") {
-      load();
-    }
+  const handleCancel = (orderId: number) => {
+    Alert.alert("Batalkan pesanan", "Yakin ingin membatalkan pesanan ini?", [
+      {
+        text: "Tidak",
+        style: "cancel",
+      },
+      {
+        text: "Ya, batalkan",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const res = await updateOrderStatus(orderId, "cancelled");
+            if (res.status === "success") {
+              load(); // refresh list
+            } else {
+              Alert.alert("Gagal", res.message || "Pesanan gagal dibatalkan.");
+            }
+          } catch (e) {
+            console.error(e);
+            Alert.alert("Error", "Terjadi kesalahan saat membatalkan pesanan.");
+          }
+        },
+      },
+    ]);
   };
 
   const renderItem = ({ item }: { item: OrderSummary }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() =>
-        router.push({ pathname: "/order-detail/[id]", params: { id: item.order_id } })
+        router.push({
+          pathname: "/order-detail/[id]",
+          params: { id: item.order_id },
+        })
       }
       activeOpacity={0.9}
     >

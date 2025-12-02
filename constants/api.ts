@@ -299,3 +299,28 @@ export async function submitReview(params: {
   });
   return (await res.json()) as { status: "success" | "error"; message: string };
 }
+
+export type EventItem = {
+  event_id: number;
+  event_name: string;
+  start_date: string;
+  end_date: string;
+  description: string | null;
+  image_url: string | null;
+  status: "Upcoming" | "Ongoing" | "Finished";
+  destination_id: number;
+
+  destination_name: string;
+  dest_image: string | null;
+  address: string | null;
+};
+
+export type EventsResponse =
+  | { status: "success"; data: EventItem[] }
+  | { status: "error"; message: string };
+
+export async function getEvents(): Promise<EventsResponse> {
+  const res = await fetch(`${API_BASE_URL}/get_events.php`);
+  const json = await res.json();
+  return json as EventsResponse;
+}
