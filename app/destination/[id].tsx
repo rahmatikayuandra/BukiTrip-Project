@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
+// app/destination/[id].tsx
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,15 +11,35 @@ import {
   Dimensions,
   FlatList,
   Alert,
+  Platform,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Destination, Review, getDestinationDetail } from "../../constants/api";
-import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const HERO_HEIGHT = 220;
+
+// KEY untuk AsyncStorage
+const FAV_KEY = "bukitrip_favorites";
+
+// helper: toggle favorite di AsyncStorage
+async function toggleFavorite(id: number) {
+  const raw = await AsyncStorage.getItem(FAV_KEY);
+  let arr: number[] = raw ? JSON.parse(raw) : [];
+
+  if (arr.includes(id)) {
+    arr = arr.filter((x) => x !== id);
+  } else {
+    arr.push(id);
+  }
+
+  await AsyncStorage.setItem(FAV_KEY, JSON.stringify(arr));
+  // return apakah sekarang dia masih termasuk favorite
+  return arr.includes(id);
+}
 
 type DetailState = {
   destination: Destination | null;
@@ -43,6 +64,7 @@ const DestinationDetailScreen: React.FC = () => {
 
   const destinationId = Number(id);
 
+  // 1) load detail destinasi + images + review + related
   useEffect(() => {
     const loadDetail = async () => {
       if (!destinationId) {
@@ -74,7 +96,21 @@ const DestinationDetailScreen: React.FC = () => {
     loadDetail();
   }, [destinationId]);
 
+  // 2) cek apakah destinasi ini sudah masuk favorite (saat screen dibuka)
+  useEffect(() => {
+    const loadFav = async () => {
+      const raw = await AsyncStorage.getItem(FAV_KEY);
+      const arr: number[] = raw ? JSON.parse(raw) : [];
+      setLiked(arr.includes(destinationId));
+    };
+    if (destinationId) {
+      loadFav();
+    }
+  }, [destinationId]);
+
   const destination = data.destination;
+  console.log("DESTINATION DATA:", destination);
+console.log("MAP IMAGE URL:", destination?.map_image_url);
 
   const images = data.images.length
     ? data.images
@@ -168,6 +204,7 @@ const DestinationDetailScreen: React.FC = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detail Destinasi</Text>
       </View>
+
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
@@ -193,10 +230,13 @@ const DestinationDetailScreen: React.FC = () => {
             <View style={[styles.heroImage, styles.heroPlaceholder]} />
           )}
 
-          {/* Like */}
+          {/* Like / Favorite */}
           <TouchableOpacity
             style={styles.likeButton}
-            onPress={() => setLiked((p) => !p)}
+            onPress={async () => {
+              const newVal = await toggleFavorite(destinationId);
+              setLiked(newVal);
+            }}
           >
             <Ionicons
               name={liked ? "heart" : "heart-outline"}
@@ -257,16 +297,23 @@ const DestinationDetailScreen: React.FC = () => {
             <Text style={styles.sectionTitle}>Lokasi</Text>
             <Text style={styles.sectionBody}>{destination.address}</Text>
 
-            <View style={styles.mapPlaceholder}>
-              {/* nanti bisa diganti MapView / open Google Maps */}
-            </View>
+            {/* MAP IMAGE */}
+            {destination.map_image_url ? (
+              <Image
+                source={{ uri: destination.map_image_url }}
+                style={styles.mapImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.mapPlaceholder} />
+            )}
 
             <TouchableOpacity
               style={styles.mapButton}
               onPress={() =>
                 Alert.alert(
                   "Coming soon",
-                  "Integrasi ke Google Maps akan ditambahkan nanti 😊"
+                  "Integrasi ke Google Maps akan ditambahkan 😊"
                 )
               }
             >
@@ -372,6 +419,7 @@ const DestinationDetailScreen: React.FC = () => {
           )}
         </View>
       </ScrollView>
+
       {/* PESAN SEKARANG */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
@@ -536,6 +584,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#E3D6F0",
     marginTop: 8,
   },
+
+  mapImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 14,
+    marginTop: 10,
+    backgroundColor: "#E3D6F0",
+  },
+
   mapButton: {
     marginTop: 10,
     alignSelf: "center",
@@ -578,9 +635,8 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     marginRight: 10,
-    backgroundColor: "#D0C4E5", // kalau gambar belum ke-load
+    backgroundColor: "#D0C4E5",
   },
-  // reviewAvatar lama (lingkaran ungu) boleh tetap dipakai untuk placeholder
   reviewName: {
     fontSize: 13,
     fontWeight: "600",

@@ -7,6 +7,10 @@ export type LoginResponseUser = {
   name: string;
   email: string;
   username: string;
+  phone_number?: string | null;
+  gender?: "Laki-laki" | "Perempuan" | string | null;
+  profil_pic?: string | null; // URL foto profil (backend kasih full URL)
+  language?: string | null; // misal "id" / "en"
 };
 
 export type LoginResponse =
@@ -67,6 +71,7 @@ export type Destination = {
   price_child: string;
   rating: string | null;
   image_url: string | null;
+  map_image_url?: string | null;
   status: "Open" | "Closed";
   address: string | null;
   description: string | null;
@@ -158,16 +163,13 @@ export type VouchersResponse =
 export async function getVouchers(
   destinationId?: number
 ): Promise<VouchersResponse> {
-  const query = destinationId
-    ? `?destination_id=${destinationId}`
-    : "";
+  const query = destinationId ? `?destination_id=${destinationId}` : "";
   const res = await fetch(`${API_BASE_URL}/get_vouchers.php${query}`);
   const json = await res.json();
   return json as VouchersResponse;
 }
 
 // ==== ORDER ====
-
 
 export type PaymentMethod = "QRIS" | "e-wallet" | "Bank Transfer" | "COD";
 
@@ -323,4 +325,106 @@ export async function getEvents(): Promise<EventsResponse> {
   const res = await fetch(`${API_BASE_URL}/get_events.php`);
   const json = await res.json();
   return json as EventsResponse;
+}
+
+// ==== PROFILE ====
+
+export type UserProfile = {
+  user_id: number;
+  name: string;
+  email: string;
+  username: string;
+  phone_number?: string | null;
+  gender?: "Laki-laki" | "Perempuan" | "Lainnya" | null;
+  profil_pic?: string | null;
+};
+
+export type ProfileResponse =
+  | { status: "success"; user: UserProfile }
+  | { status: "error"; message: string };
+
+export async function getProfile(
+  userId: number
+): Promise<ProfileResponse> {
+  const res = await fetch(`${API_BASE_URL}/get_profile.php?user_id=${userId}`);
+  const json = await res.json();
+  return json as ProfileResponse;
+}
+
+export async function updateProfile(data: {
+  user_id: number;
+  name: string;
+  email: string;
+  phone_number?: string;
+  gender?: "Laki-laki" | "Perempuan" | "Lainnya" | "";
+}): Promise<{ status: "success" | "error"; message: string }> {
+  const res = await fetch(`${API_BASE_URL}/update_profile.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return (await res.json()) as { status: "success" | "error"; message: string };
+}
+
+// ==== FAVORITES ====
+
+export type FavoriteItem = {
+  favorite_id: number;
+  destination_id: number;
+  destination_name: string;
+  price_adult: string;
+  rating: string | null;
+  image_url: string | null;
+};
+
+export type FavoritesResponse =
+  | { status: "success"; data: FavoriteItem[] }
+  | { status: "error"; message: string };
+
+export async function getFavorites(
+  userId: number
+): Promise<FavoritesResponse> {
+  const res = await fetch(
+    `${API_BASE_URL}/get_favorites.php?user_id=${userId}`
+  );
+  const json = await res.json();
+  return json as FavoritesResponse;
+}
+
+export async function toggleFavorite(params: {
+  user_id: number;
+  destination_id: number;
+  is_favorite: boolean;
+}): Promise<{ status: "success" | "error"; message: string }> {
+  const res = await fetch(`${API_BASE_URL}/toggle_favorite.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  return (await res.json()) as {
+    status: "success" | "error";
+    message: string;
+  };
+}
+
+// ==== ACCOUNT / PROFILE ====
+
+// ganti password
+export type ChangePasswordResponse =
+  | { status: "success"; message: string }
+  | { status: "error"; message: string };
+
+export async function changePassword(params: {
+  user_id: number;
+  old_password: string;
+  new_password: string;
+}): Promise<ChangePasswordResponse> {
+  const res = await fetch(`${API_BASE_URL}/change_password.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  const json = await res.json();
+  return json as ChangePasswordResponse;
 }

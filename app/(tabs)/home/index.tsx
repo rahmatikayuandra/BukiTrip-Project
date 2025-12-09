@@ -107,36 +107,36 @@ const HomeScreen: React.FC = () => {
   }
 
   const renderDestinationCard = (item: Destination) => (
-  <TouchableOpacity
-    style={styles.destCard}
-    onPress={() =>
-      router.push({
-        pathname: "/destination/[id]",
-        params: { id: item.destination_id },
-      })
-    }
-  >
-    {item.image_url ? (
-      <Image source={{ uri: item.image_url }} style={styles.destImage} />
-    ) : (
-      <View style={[styles.destImage, styles.destImagePlaceholder]} />
-    )}
-    <View style={styles.destInfo}>
-      <Text style={styles.destName} numberOfLines={1}>
-        {item.destination_name}
-      </Text>
-      <Text style={styles.destPrice}>Rp {item.price_adult}</Text>
-      {item.rating && (
-        <View style={styles.ratingRow}>
-          <Ionicons name="star" size={12} color="#F5C045" />
-          <Text style={styles.destRating}>
-            {parseFloat(item.rating).toFixed(1)} / 5
-          </Text>
-        </View>
+    <TouchableOpacity
+      style={styles.destCard}
+      onPress={() =>
+        router.push({
+          pathname: "/destination/[id]",
+          params: { id: item.destination_id },
+        })
+      }
+    >
+      {item.image_url ? (
+        <Image source={{ uri: item.image_url }} style={styles.destImage} />
+      ) : (
+        <View style={[styles.destImage, styles.destImagePlaceholder]} />
       )}
-    </View>
-  </TouchableOpacity>
-);
+      <View style={styles.destInfo}>
+        <Text style={styles.destName} numberOfLines={1}>
+          {item.destination_name}
+        </Text>
+        <Text style={styles.destPrice}>Rp {item.price_adult}</Text>
+        {item.rating && (
+          <View style={styles.ratingRow}>
+            <Ionicons name="star" size={12} color="#F5C045" />
+            <Text style={styles.destRating}>
+              {parseFloat(item.rating).toFixed(1)} / 5
+            </Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.root}>
@@ -243,10 +243,30 @@ const HomeScreen: React.FC = () => {
                 contentContainerStyle={{ paddingVertical: 4 }}
               />
 
-              {/* Promo 1 */}
-              <View style={styles.promoCardLarge}>
-                <View style={styles.promoBoxLeft} />
-                <View style={styles.promoTextContainer}>
+              {/* PROMO SECTION */}
+              <Text style={styles.sectionTitle}>Promo Spesial</Text>
+
+              {/* Promo 1 — Museum Bung Hatta */}
+              <TouchableOpacity
+                style={styles.promoCard}
+                activeOpacity={0.9}
+                onPress={() =>
+                  router.push({
+                    pathname: "/destination/[id]",
+                    params: { id: 7 }, // Museum Bung Hatta destination_id = 7
+                  })
+                }
+              >
+                <Image
+                  source={{
+                    uri: "http://localhost:8888/BukiTrip/uploads/destinations/museumhatta3.jpg",
+                  }}
+                  style={styles.promoImage}
+                />
+
+                <View style={styles.promoOverlay} />
+
+                <View style={styles.promoContent}>
                   <Text style={styles.promoTitle}>
                     Museum Kelahiran Bung Hatta
                   </Text>
@@ -254,19 +274,35 @@ const HomeScreen: React.FC = () => {
                     Gratis tiket masuk di hari kerja!
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
 
-              {/* Promo 2 */}
-              <View style={styles.promoCardRow}>
-                <View style={styles.promoCardLeft}>
-                  <Text style={styles.promoSmallTitle}>Kinantan Zoo</Text>
-                  <Text style={styles.promoSmallText}>
-                    Diskon khusus hari ini
+              {/* Promo 2 — Kinantan Zoo */}
+              <TouchableOpacity
+                style={styles.promoCard}
+                activeOpacity={0.9}
+                onPress={() =>
+                  router.push({
+                    pathname: "/destination/[id]",
+                    params: { id: 5 }, // Kinantan Zoo = ID 5
+                  })
+                }
+              >
+                <Image
+                  source={{
+                    uri: "http://localhost:8888/BukiTrip/uploads/destinations/kinantan4.jpg",
+                  }}
+                  style={styles.promoImage}
+                />
+
+                <View style={styles.promoOverlay} />
+
+                <View style={styles.promoContent}>
+                  <Text style={styles.promoTitle}>Kebun Binatang Kinantan</Text>
+                  <Text style={styles.promoSubtitle}>
+                    Diskon 25% hanya hari ini!
                   </Text>
-                  <Text style={styles.promoPercent}>25%</Text>
                 </View>
-                <View style={styles.promoCardRight} />
-              </View>
+              </TouchableOpacity>
 
               {/* Spesial Untukmu */}
               <Text style={styles.sectionTitle}>Spesial Untukmu</Text>
@@ -344,7 +380,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-    categoryRow: {
+  categoryRow: {
     marginTop: 10,
   },
   categoryChip: {
@@ -369,7 +405,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "600",
   },
-  
+
   searchBar: {
     flex: 1,
     flexDirection: "row",
@@ -444,76 +480,45 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     color: "#555",
   },
-  promoCardLarge: {
-    marginTop: 16,
-    flexDirection: "row",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+  promoCard: {
+    width: "100%",
+    height: 150,
+    borderRadius: 18,
+    overflow: "hidden",
+    marginBottom: 16,
+    backgroundColor: "#EAE6F8",
+    elevation: 3,
   },
-  promoBoxLeft: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
-    backgroundColor: "#C8B8DC",
-    marginRight: 12,
+
+  promoImage: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
   },
-  promoTextContainer: {
-    flex: 1,
+
+  promoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
+
+  promoContent: {
+    position: "absolute",
+    left: 14,
+    bottom: 14,
+  },
+
   promoTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#502F4C",
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
+
   promoSubtitle: {
-    fontSize: 13,
-    color: "#70587C",
-  },
-  promoCardRow: {
-    marginTop: 12,
-    flexDirection: "row",
-  },
-  promoCardLeft: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 12,
-    marginRight: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  promoCardRight: {
-    flex: 1,
-    backgroundColor: "#F1E5F7",
-    borderRadius: 20,
-  },
-  promoSmallTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#502F4C",
-    marginBottom: 4,
-  },
-  promoSmallText: {
     fontSize: 12,
-    color: "#70587C",
-    marginBottom: 6,
+    color: "#F1E8FF",
+    marginTop: 2,
   },
-  promoPercent: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#502F4C",
-  },
+
   quoteCard: {
     marginTop: 20,
     backgroundColor: "#F8F0F8",
